@@ -5,7 +5,7 @@
  *
  * Return: Nothing.
  */
-void shell_loop(void)
+int shell_loop(void)
 {
 	char *line = NULL;
 	char **argv = NULL;
@@ -22,7 +22,7 @@ void shell_loop(void)
 		{
 			if (is_interactive())
 				write(STDOUT_FILENO, "\n", 1);
-			break;
+			return (0);
 		}
 
 		argv = tokenize(line);
@@ -46,4 +46,5 @@ void shell_loop(void)
 		free(line);
 		line = NULL;
 	}
+	return (0);
 }

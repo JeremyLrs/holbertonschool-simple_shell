@@ -20,7 +20,7 @@ extern char **environ;
 
 /* ==== loop.c ==== */
 /* Boucle principale du shell */
-void shell_loop(void);
+int shell_loop(void);
 
 /* ==== input.c ==== */
 char *read_input(void);
