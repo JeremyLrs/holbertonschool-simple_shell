@@ -1,63 +1,70 @@
 #include "shell.h"
 
 /**
- * get_exec_path - Determines the full path for a command.
- * @cmd: The command name.
- *
- * Return: The allocated full path, or NULL on error.
- */
-
-char *get_exec_path(char *cmd)
-{
-	if (strchr(cmd, '/') != NULL)
-	{
-		if (is_executable(cmd))
-
-			return (strdup(cmd));
-		else
-			return (NULL);
-	}
-	else
-	{
-		return (resolve_path(cmd));
-	}
-}
-
-/**
  * execute_command - Executes a command (builtin or external).
  *
  * @argv: Null-terminated array of command arguments.
- * @exit_shell: Pointer to shell exit flag.
- * @exit_status: Pointer to command exit status.
+ * @exit_shell: Pointer to int that indicates if the shell should exit.
+ * @exit_status: Pointer to int that stores the exit status of the command.
  *
- * Return: 0 on success.
+ * Return: Always 0.
  */
 int execute_command(char **argv, int *exit_shell, int *exit_status)
 {
+	pid_t pid;
+	int status;
 	char *path;
+	struct stat st;
+
+	if (argv == NULL || argv[0] == NULL)
+		return (0);
 
 	if (is_builtin(argv[0]))
 	{
 		run_builtin(argv, exit_shell, exit_status);
 		return (0);
 	}
-	path = get_exec_path(argv[0]);
-	if (path == NULL)
+	if (strchr(argv[0], '/') != NULL)
 	{
-		fprintf(stderr, "shell: %s: command not found\n", argv[0]);
-		*exit_status = 127;
-		return (0);
+		if (access(argv[0], X_OK) != 0 || stat(argv[0], &st) != 0 ||
+		!S_ISREG(st.st_mode))
+		{
+			fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
+			*exit_status = 127;
+			return (0);
+		}
+		pid = launch_process(argv[0], argv, environ, &status);
 	}
-	launch_process(path, argv, environ, exit_status);
-	if (strchr(argv[0], '/') == NULL)
+	else
 	{
+		path = resolve_path(argv[0]);
+		if (path == NULL || access(path, X_OK) != 0)
+		{
+			fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
+			*exit_status = 127;
+			if (path)
+				free(path);
+			return (0);
+		}
+		pid = launch_process(path, argv, environ, &status);
 		free(path);
 	}
+	if (pid < 0)
+	{
+		perror("fork failed");
+		*exit_status = 1;
+		return (0);
+	}
+	if (WIFEXITED(status))
+		*exit_status = WEXITSTATUS(status);
+	else
+		*exit_status = 1;
+
 	return (0);
 }
 
 /**
- * launch_process - Creates a child process to run an external command.
+ * launch_process - Executes a program in a subprocess.
  *
  * @path: Path to the executable file.
  * @argv: Null-terminated array of arguments.
@@ -93,5 +100,6 @@ pid_t launch_process(const char *path, char **argv, char **envp, int *status)
 			return (-1);
 		}
 	}
+
 	return (pid);
 }
