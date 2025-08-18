@@ -1,21 +1,39 @@
 #include "shell.h"
 
 /**
+ * get_exec_path - Determines the full path for a command.
+ * @cmd: The command name.
+ *
+ * Return: The allocated full path, or NULL on error.
+ */
+
+char *get_exec_path(char *cmd)
+{
+	if (strchr(cmd, '/') != NULL)
+	{
+		if (is_executable(cmd))
+
+			return (strdup(cmd));
+		else
+			return (NULL);
+	}
+	else
+	{
+		return (resolve_path(cmd));
+	}
+}
+
+/**
  * execute_command - Executes a command (builtin or external).
  *
  * @argv: Null-terminated array of command arguments.
- * @exit_shell: Pointer to int that indicates
- * if the shell should exit.
- * @exit_status: Pointer to int that stores
- * the exit status of the command.
+ * @exit_shell: Pointer to shell exit flag.
+ * @exit_status: Pointer to command exit status.
  *
- * Return: Exit status code of the command.
- *
+ * Return: 0 on success.
  */
 int execute_command(char **argv, int *exit_shell, int *exit_status)
 {
-	pid_t pid;
-	int status;
 	char *path;
 
 	if (is_builtin(argv[0]))
@@ -23,41 +41,17 @@ int execute_command(char **argv, int *exit_shell, int *exit_status)
 		run_builtin(argv, exit_shell, exit_status);
 		return (0);
 	}
-	if (strchr(argv[0], '/') != NULL)
+	path = get_exec_path(argv[0]);
+	if (path == NULL)
 	{
-		pid = launch_process(argv[0], argv, environ, &status);
-		if (pid < 0)
-		{
-			perror("fork failed");
-			*exit_status = 1;
-			return (0);
-		}
-		if (WIFEXITED(status))
-			*exit_status = WEXITSTATUS(status);
-		else
-			*exit_status = 1;
+		fprintf(stderr, "shell: %s: command not found\n", argv[0]);
+		*exit_status = 127;
+		return (0);
 	}
-	else
+	launch_process(path, argv, environ, exit_status);
+	if (strchr(argv[0], '/') == NULL)
 	{
-		path = resolve_path(argv[0]);
-		if (path == NULL)
-		{
-			fprintf(stderr, "shell: %s: command not found\n", argv[0]);
-			*exit_status = 127;
-			return (0);
-		}
-		pid = launch_process(path, argv, environ, &status);
 		free(path);
-		if (pid < 0)
-		{
-			perror("fork failed");
-			*exit_status = 1;
-			return (0);
-		}
-		if (WIFEXITED(status))
-			*exit_status = WEXITSTATUS(status);
-		else
-			*exit_status = 1;
 	}
 	return (0);
 }
