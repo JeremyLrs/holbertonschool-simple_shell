@@ -1,0 +1,102 @@
+.TH HSH 1 "2025-08-11" "Simple Shell" "User Commands"
+.\m[cyan]SH NAME\m[white]
+hsh \- simple command line shell interpreter
+
+.SH \m[cyan]SYNOPSIS\m[white]
+.B hsh
+
+.SH \m[cyan]DESCRIPTION\m[white]
+The
+.B hsh
+Program is a minimal Unix command-line shell interpreter developed as part of the Holberton School curriculum.
+
+It operates in both interactive and non-interactive modes. In interactive mode, it displays a prompt and waits for user input. In non-interactive mode (e.g., when input is piped), it reads commands from standard input until EOF.
+
+It supports:
+
+.IP \[bu] 2
+Execution of built-in commands such as \fBexit\fR and \fBenv\fR.
+.IP \[bu]
+Execution of external commands by searching directories listed in the \fBPATH\fR environment variable.
+.IP \[bu]
+Signal handling for \fBSIGINT\fR (Ctrl+C) to avoid shell termination.
+.IP \[bu]
+Error handling for memory allocation and invalid commands.
+
+.SH \m[cyan]OPTIONS\m[white]
+This shell currently does not accept any command-line options.
+
+.SH \m[cyan]BUILTIN COMMANDS\m[white]
+.TP
+.B exit [n]
+Exit the shell with a status of \fIn\fR. If \fIn\fR is omitted, the exit status is that of the last command executed.
+
+.TP
+.B env
+Print the current environment variables to the standard output.
+
+.SH \m[cyan]USAGE\m[white]
+.PP
+When launched:
+
+
+- If standard input is a terminal, \fBhsh\fR runs in interactive mode, displays a prompt, and waits for input.
+
+- If standard input is not a terminal, it reads and executes commands until EOF.
+
+Each input line is tokenized and parsed:
+
+- If the command matches a built-in, it is executed internally.
+
+- Otherwise, the shell searches for the executable using the \fBPATH\fR variable.
+
+- If the command is not found, an error message is displayed and exit code \fB127\fR is returned (in non-interactive mode).
+
+.PP
+
+.SH \m[cyan]EXAMPLES\m[white]
+.TP
+.B hsh
+Launches the shell in interactive mode. Displays a prompt and waits for user input.
+
+.TP
+.B echo "ls -l" | hsh
+Runs the shell in non-interactive mode and executes the command \fBls -l\fR.
+
+.TP
+.B hsh < script.sh
+Reads commands from the file \fBscript.sh\fR and executes them sequentially.
+
+.SH \m[cyan]EXIT STATUS\m[white]
+.TP
+0
+Success.
+.TP
+127
+Command not found.
+.TP
+Other
+Return value of the last executed command or the status provided to \fBexit\fR.
+
+.SH \m[cyan]SIGNALS\m[white]
+.B hsh
+handles \fBSIGINT\fR (Ctrl+C) gracefully by printing a new prompt on a new line instead of exiting. This allows uninterrupted use of the shell.
+
+.SH \m[cyan]ERRORS\m[white]
+If memory allocation fails, the shell prints an error message and exits with failure status.
+
+If a command is not found, the shell prints:
+.sp
+\fBhsh: command: not found\fR
+
+.SH \m[cyan]AUTHOR\m[white]
+Written by Laurens Jeremy and Salanson Flora.
+
+.SH \m[cyan]SEE ALSO\m[white]
+.BR sh (1),
+.BR bash (1),
+.BR execve (2),
+.BR fork (2),
+.BR getenv (3),
+.BR signal (7)
+
