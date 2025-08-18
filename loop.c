@@ -1,9 +1,10 @@
 #include "shell.h"
 
 /**
- * shell_loop - Main execution loop of the simple shell.
+ * shell_loop - Main loop of the shell that reads input,
+ * and executes commands.
  *
- * Return: Nothing.
+ * Return: The exit status of the shell.
  */
 int shell_loop(void)
 {
@@ -22,7 +23,7 @@ int shell_loop(void)
 		{
 			if (is_interactive())
 				write(STDOUT_FILENO, "\n", 1);
-			return (0);
+			return (exit_status);
 		}
 
 		argv = tokenize(line);
@@ -38,13 +39,11 @@ int shell_loop(void)
 			argv = NULL;
 			continue;
 		}
-
 		execute_command(argv, &exit_shell, &exit_status);
-
 		free_tokens(argv);
 		argv = NULL;
 		free(line);
 		line = NULL;
 	}
-	return (0);
+	return (exit_status);
 }
