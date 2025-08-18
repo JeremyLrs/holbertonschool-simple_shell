@@ -33,6 +33,7 @@ size_t count_tokens(const char *line);
 void free_tokens(char **argv);
 
 /* ==== execute.c ==== */
+char *get_exec_path(char *cmd);
 int execute_command(char **argv, int *exit_shell, int *exit_status);
 pid_t launch_process(const char *path, char **argv, char **envp, int *status);
 
